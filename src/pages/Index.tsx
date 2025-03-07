@@ -101,7 +101,7 @@ const Index = () => {
                 language={language}
                 setLanguage={setLanguage}
                 onRefresh={handleRefresh}
-                onBack={resetToLanding}
+                onBackClick={resetToLanding}  // Changed from onBack to onBackClick to match Header component
               />
               
               {videoId && (

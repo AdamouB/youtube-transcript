@@ -27,8 +27,8 @@ const TranscriptViewer = ({ segments, showTimestamps }: TranscriptViewerProps) =
   const [filteredSegments, setFilteredSegments] = useState<TranscriptSegment[]>(segments);
   const [searchTerm, setSearchTerm] = useState('');
   const [autoScroll, setAutoScroll] = useState(false);
-  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 20 });
-  const [loadingMore, setLoadingMore] = useState(false);
+
+  // Removed visibleRange state and loadingMore state since we're showing all segments now
 
   useEffect(() => {
     if (searchTerm) {
@@ -80,29 +80,12 @@ const TranscriptViewer = ({ segments, showTimestamps }: TranscriptViewerProps) =
     toast.success('Transcript downloaded successfully!');
   };
 
-  const loadMore = () => {
-    setLoadingMore(true);
-    // Simulate loading delay
-    setTimeout(() => {
-      setVisibleRange(prev => ({
-        start: prev.start,
-        end: Math.min(prev.end + 20, filteredSegments.length)
-      }));
-      setLoadingMore(false);
-    }, 500);
-  };
-
   const handleScrollToTop = () => {
-    setVisibleRange({ start: 0, end: 20 });
     const scrollContainer = document.querySelector('.scroll-container');
     if (scrollContainer) {
       scrollContainer.scrollTop = 0;
     }
   };
-
-  // Determine if we have more items to show
-  const hasMore = visibleRange.end < filteredSegments.length;
-  const visibleSegments = filteredSegments.slice(0, visibleRange.end);
 
   return (
     <div className="w-full flex flex-col glass-panel shadow-lg rounded-2xl animate-scale-in p-5 bg-white/60 dark:bg-gray-900/60 backdrop-blur-md">
@@ -174,46 +157,25 @@ const TranscriptViewer = ({ segments, showTimestamps }: TranscriptViewerProps) =
       
       <ScrollArea className="h-[450px] rounded-md border bg-white/30 dark:bg-gray-900/30 scroll-container">
         <div className="space-y-1 p-2 relative">
-          {visibleSegments.length > 0 ? (
+          {filteredSegments.length > 0 ? (
             <>
-              {visibleRange.start > 0 && (
-                <Button 
-                  variant="ghost" 
-                  className="w-full flex items-center justify-center py-2 mb-2"
-                  onClick={handleScrollToTop}
-                >
-                  <ArrowUp className="mr-2 h-4 w-4" />
-                  Scroll to top
-                </Button>
-              )}
+              <Button 
+                variant="ghost" 
+                className="w-full flex items-center justify-center py-2 mb-2"
+                onClick={handleScrollToTop}
+              >
+                <ArrowUp className="mr-2 h-4 w-4" />
+                Scroll to top
+              </Button>
               
-              {visibleSegments.map((segment) => (
+              {/* Display all segments without pagination */}
+              {filteredSegments.map((segment) => (
                 <TranscriptLine
                   key={segment.id}
                   segment={segment}
                   showTimestamps={showTimestamps}
                 />
               ))}
-              
-              {hasMore && (
-                <Button 
-                  variant="outline" 
-                  className="w-full flex items-center justify-center py-2 mt-2"
-                  onClick={loadMore}
-                  disabled={loadingMore}
-                >
-                  {loadingMore ? (
-                    <span className="flex items-center">
-                      Loading<span className="loading-dots"></span>
-                    </span>
-                  ) : (
-                    <>
-                      <ArrowDown className="mr-2 h-4 w-4" />
-                      Load more ({filteredSegments.length - visibleRange.end} remaining)
-                    </>
-                  )}
-                </Button>
-              )}
             </>
           ) : (
             <div className="p-8 text-center text-muted-foreground">
