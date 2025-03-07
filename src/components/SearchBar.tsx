@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
 
 interface SearchBarProps {
   onSearch: (term: string) => void;
@@ -25,7 +26,12 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
   };
 
   return (
-    <div className="relative w-full animate-fade-in">
+    <motion.div 
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="relative w-full"
+    >
       <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary opacity-70">
         <Search className="h-4 w-4" />
       </div>
@@ -46,7 +52,7 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
           <X className="h-3.5 w-3.5" />
         </Button>
       )}
-    </div>
+    </motion.div>
   );
 };
 
