@@ -25,7 +25,7 @@ export const fetchTranscript = async (videoUrl: string): Promise<TranscriptSegme
   }
 };
 
-// Helper function to generate mock transcript data
+// Helper function to generate mock transcript data with MORE segments
 const generateMockTranscript = (): TranscriptSegment[] => {
   const mockTexts = [
     "Welcome to this video about minimalist design.",
@@ -56,7 +56,27 @@ const generateMockTranscript = (): TranscriptSegment[] => {
     "Thanks for watching this introduction to minimalist design principles.",
     "In the next video, we'll look at practical examples of these principles in action.",
     "Don't forget to subscribe for more design content.",
-    "Until next time, focus on simplicity and clarity in your designs."
+    "Until next time, focus on simplicity and clarity in your designs.",
+    "Bonus content: Let's discuss how minimalism applies to different design disciplines.",
+    "In web design, minimalism means removing unnecessary navigation options.",
+    "In product design, it means creating objects that serve their purpose elegantly.",
+    "In graphic design, it means using negative space effectively.",
+    "The key is always intentionality - every element must earn its place.",
+    "This approach requires discipline and a willingness to edit ruthlessly.",
+    "It's often harder to remove elements than to add them.",
+    "But the result is a more focused, effective design.",
+    "Users appreciate designs that respect their attention and cognitive resources.",
+    "That's why minimalist design continues to be relevant decade after decade.",
+    "It's not about following a trend - it's about respecting fundamental principles.",
+    "When designing minimalist interfaces, test with real users.",
+    "Sometimes what seems unnecessary to designers is actually important to users.",
+    "The goal is clarity and effectiveness, not minimalism for its own sake.",
+    "Thank you for watching this extended discussion on minimalist design.",
+    "I hope these principles help you create more effective, beautiful work.",
+    "Let me know in the comments which principles you find most valuable.",
+    "And if you have examples of great minimalist design, share those too!",
+    "Remember: in design, less is often more, but only when the less is exactly right.",
+    "That's the true art of minimalism."
   ];
 
   return mockTexts.map((text, index) => {
@@ -98,4 +118,24 @@ export const extractVideoId = (url: string): string | null => {
 export const getYouTubeThumbnail = (videoId: string): string => {
   // Using maxresdefault for high quality, with fallback option
   return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+};
+
+// Function to handle bulk transcript processing
+export const processBulkTranscripts = async (urls: string[]): Promise<Record<string, TranscriptSegment[]>> => {
+  const results: Record<string, TranscriptSegment[]> = {};
+  
+  for (const url of urls) {
+    try {
+      const videoId = extractVideoId(url);
+      if (videoId) {
+        const transcript = await fetchTranscript(url);
+        results[videoId] = transcript;
+      }
+    } catch (error) {
+      console.error(`Error processing ${url}:`, error);
+      // Continue with other URLs even if one fails
+    }
+  }
+  
+  return results;
 };

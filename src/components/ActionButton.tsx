@@ -34,7 +34,7 @@ const ActionButton = ({
             size={size}
             onClick={onClick}
             className={cn(
-              "group transition-all duration-200 hover:scale-105 active:scale-95", 
+              "group transition-all duration-200 hover:scale-105 active:scale-95 rounded-xl", 
               size === 'icon' && "h-9 w-9", 
               className
             )}
@@ -44,7 +44,7 @@ const ActionButton = ({
             {icon}
           </Button>
         </TooltipTrigger>
-        <TooltipContent side={tooltipSide} sideOffset={5} className="font-medium">
+        <TooltipContent side={tooltipSide} sideOffset={5} className="font-medium bg-black/80 text-white border-none">
           <p className="text-xs">{label}</p>
         </TooltipContent>
       </Tooltip>
