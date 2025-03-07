@@ -16,7 +16,7 @@ export const fetchTranscript = async (videoUrl: string): Promise<TranscriptSegme
       throw new Error('Failed to fetch transcript');
     }
     
-    // Mock data for demonstration
+    // Mock data for demonstration - in a real implementation, this would come from the API
     return generateMockTranscript();
   } catch (error) {
     console.error('Error fetching transcript:', error);
@@ -72,12 +72,30 @@ const generateMockTranscript = (): TranscriptSegment[] => {
 
 // Helper function to extract video ID from YouTube URL
 export const extractVideoId = (url: string): string | null => {
-  const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[7].length === 11) ? match[7] : null;
+  // Handle various YouTube URL formats
+  const regExpList = [
+    /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/,
+    /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/(.+)$/
+  ];
+  
+  for (const regExp of regExpList) {
+    const match = url.match(regExp);
+    if (match && match[7] && match[7].length === 11) {
+      return match[7];
+    }
+  }
+  
+  // Special case for youtu.be format
+  const shortMatch = url.match(/youtu\.be\/([^?#&]+)/);
+  if (shortMatch && shortMatch[1] && shortMatch[1].length === 11) {
+    return shortMatch[1];
+  }
+  
+  return null;
 };
 
 // Function to generate thumbnail URL from video ID
 export const getYouTubeThumbnail = (videoId: string): string => {
+  // Using maxresdefault for high quality, with fallback option
   return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 };

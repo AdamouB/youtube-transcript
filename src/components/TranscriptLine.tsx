@@ -44,42 +44,45 @@ const TranscriptLine = ({ segment, showTimestamps, isActive = false }: Transcrip
   return (
     <div 
       className={cn(
-        "group transcript-line flex items-start gap-2",
-        isActive && "transcript-line-active"
+        "group transcript-line flex items-start gap-3 p-3 rounded-md hover:bg-white/40 dark:hover:bg-gray-800/40 transition-all duration-200",
+        isActive && "bg-white/30 dark:bg-gray-800/30 border-l-4 border-primary"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {showTimestamps && (
-        <div className="timestamp min-w-[50px] pt-0.5 select-none">
+        <div className="timestamp min-w-[60px] font-mono bg-secondary/70 rounded px-2 py-1 text-center">
           {formatTime(segment.start)}
         </div>
       )}
       
-      <div className="flex-1 text-left">{segment.text}</div>
+      <div className="flex-1 text-left leading-relaxed">{segment.text}</div>
       
       {(isHovered || isActive) && (
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <ActionButton
-            icon={<Lightbulb className="h-3.5 w-3.5 opacity-70" />}
+            icon={<Lightbulb className="h-3.5 w-3.5" />}
             label="Add Note"
             onClick={handleAddNote}
             size="sm"
-            className="h-7 w-7"
+            className="h-7 w-7 bg-white/80 dark:bg-gray-800/80"
+            variant="outline"
           />
           <ActionButton
-            icon={<Play className="h-3.5 w-3.5 opacity-70" />}
+            icon={<Play className="h-3.5 w-3.5" />}
             label="Jump to Timestamp"
             onClick={handleJumpTo}
             size="sm"
-            className="h-7 w-7"
+            className="h-7 w-7 bg-white/80 dark:bg-gray-800/80"
+            variant="outline"
           />
           <ActionButton
-            icon={<Copy className="h-3.5 w-3.5 opacity-70" />}
+            icon={<Copy className="h-3.5 w-3.5" />}
             label="Copy Text"
             onClick={handleCopy}
             size="sm"
-            className="h-7 w-7"
+            className="h-7 w-7 bg-white/80 dark:bg-gray-800/80"
+            variant="outline"
           />
         </div>
       )}

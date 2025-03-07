@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import ActionButton from './ActionButton';
 import { toast } from 'sonner';
+import { Separator } from '@/components/ui/separator';
 
 interface HeaderProps {
   showTimestamps: boolean;
@@ -54,14 +55,15 @@ const Header = ({
   };
 
   return (
-    <div className="flex flex-col space-y-2 w-full animate-fade-in">
-      <div className="flex items-center justify-between w-full">
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-medium">Transcript</span>
+    <div className="flex flex-col space-y-3 w-full animate-fade-in">
+      <div className="flex items-center justify-between w-full bg-white/50 dark:bg-gray-900/50 rounded-lg p-3 shadow-sm">
+        <div className="flex items-center gap-3">
+          <span className="text-lg font-medium text-primary">Transcript</span>
           {isTranscriptLoaded && (
-            <div className="hidden sm:flex items-center gap-3 ml-4">
+            <div className="hidden sm:flex items-center gap-3 ml-2">
+              <Separator orientation="vertical" className="h-6" />
               <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger className="w-[180px] h-8">
+                <SelectTrigger className="w-[180px] h-9 bg-white/80 dark:bg-gray-800/80">
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
                 <SelectContent>
@@ -79,12 +81,14 @@ const Header = ({
           {isTranscriptLoaded && (
             <>
               <ActionButton 
-                icon={<RefreshCw className="action-icon" />} 
+                icon={<RefreshCw className="h-4 w-4" />} 
                 label="Refresh Transcript" 
                 onClick={onRefresh}
+                variant="outline"
+                className="bg-white/80 dark:bg-gray-800/80"
               />
               
-              <div className="hidden sm:flex items-center space-x-2 mr-2">
+              <div className="hidden sm:flex items-center space-x-2 mx-2">
                 <Switch 
                   id="timestamps" 
                   checked={showTimestamps} 
@@ -97,27 +101,35 @@ const Header = ({
               </div>
               
               <ActionButton 
-                icon={<Share2 className="action-icon" />} 
+                icon={<Share2 className="h-4 w-4" />} 
                 label="Share" 
                 onClick={handleShare}
+                variant="outline"
+                className="bg-white/80 dark:bg-gray-800/80"
               />
               
               <ActionButton 
-                icon={<Pencil className="action-icon" />} 
+                icon={<Pencil className="h-4 w-4" />} 
                 label="Edit" 
                 onClick={handleEdit}
+                variant="outline"
+                className="bg-white/80 dark:bg-gray-800/80"
               />
               
               <ActionButton 
-                icon={<Download className="action-icon" />} 
+                icon={<Download className="h-4 w-4" />} 
                 label="Download" 
                 onClick={handleDownload}
+                variant="outline"
+                className="bg-white/80 dark:bg-gray-800/80"
               />
               
               <ActionButton 
-                icon={<Quote className="action-icon" />} 
+                icon={<Quote className="h-4 w-4" />} 
                 label="Quote" 
                 onClick={handleQuote}
+                variant="outline"
+                className="bg-white/80 dark:bg-gray-800/80"
               />
             </>
           )}
@@ -125,9 +137,9 @@ const Header = ({
       </div>
       
       {isTranscriptLoaded && (
-        <div className="sm:hidden flex items-center gap-3 w-full">
+        <div className="sm:hidden flex items-center gap-3 w-full bg-white/50 dark:bg-gray-900/50 rounded-lg p-3 shadow-sm">
           <Select value={language} onValueChange={setLanguage}>
-            <SelectTrigger className="w-full h-8">
+            <SelectTrigger className="w-full h-9 bg-white/80 dark:bg-gray-800/80">
               <SelectValue placeholder="Select language" />
             </SelectTrigger>
             <SelectContent>

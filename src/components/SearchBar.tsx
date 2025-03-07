@@ -34,16 +34,16 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
         placeholder="Search transcript"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="pl-9 pr-9 h-9 bg-secondary/50 focus:bg-background transition-all"
+        className="pl-9 pr-9 h-10 bg-white/80 dark:bg-gray-800/80 focus:ring-2 focus:ring-primary transition-all"
       />
       {searchTerm && (
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 h-5 w-5"
+          className="absolute right-1.5 top-1/2 transform -translate-y-1/2 h-7 w-7 hover:bg-secondary/80"
           onClick={handleClear}
         >
-          <X className="h-3 w-3" />
+          <X className="h-3.5 w-3.5" />
         </Button>
       )}
     </div>

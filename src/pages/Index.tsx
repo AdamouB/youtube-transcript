@@ -30,6 +30,7 @@ const Index = () => {
       toast.success('Transcript loaded successfully!');
     } catch (error) {
       console.error('Error:', error);
+      toast.error('Failed to load transcript. Please try again.');
       setTranscript([]);
     } finally {
       setIsLoading(false);
@@ -45,10 +46,10 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-4 sm:p-6 md:p-8">
+    <div className="min-h-screen flex flex-col items-center p-4 sm:p-6 md:p-8 bg-gradient-to-br from-background to-secondary/20">
       <div className="w-full max-w-4xl mx-auto space-y-6">
-        <h1 className="text-center font-light tracking-tight">
-          <span className="text-primary font-medium">Transcript</span> To Go
+        <h1 className="text-center font-semibold tracking-tight text-4xl mb-6">
+          <span className="text-primary">Transcript</span> To Go
         </h1>
         
         <Header 
@@ -66,13 +67,13 @@ const Index = () => {
         />
         
         {videoId && (
-          <div className="w-full aspect-video relative rounded-lg overflow-hidden animate-fade-in">
+          <div className="w-full aspect-video relative rounded-xl overflow-hidden shadow-lg animate-fade-in">
             <img
               src={getYouTubeThumbnail(videoId)}
               alt="Video thumbnail"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           </div>
         )}
         
@@ -84,8 +85,8 @@ const Index = () => {
         )}
         
         {!transcript.length && !isLoading && (
-          <div className="text-center p-8 glass-panel animate-fade-in">
-            <h3 className="text-xl font-medium mb-2">No Transcript Loaded</h3>
+          <div className="text-center p-8 glass-panel shadow-lg rounded-xl animate-fade-in">
+            <h3 className="text-xl font-medium mb-3">No Transcript Loaded</h3>
             <p className="text-muted-foreground">
               Enter a YouTube URL above to fetch and display the transcript.
             </p>

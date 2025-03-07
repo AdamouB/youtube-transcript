@@ -12,7 +12,8 @@ import {
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
-  DropdownMenuTrigger 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ActionButton from './ActionButton';
@@ -64,39 +65,54 @@ const TranscriptViewer = ({ segments, showTimestamps }: TranscriptViewerProps) =
   };
 
   const handleDownload = () => {
-    toast.info('Download feature will be available in a future update');
+    const fullText = segments.map(segment => segment.text).join('\n\n');
+    const blob = new Blob([fullText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'transcript.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success('Transcript downloaded successfully!');
   };
 
   return (
-    <div className="w-full flex flex-col glass-panel animate-scale-in p-4">
-      <div className="flex items-center justify-between mb-3">
-        <SearchBar onSearch={handleSearch} />
+    <div className="w-full flex flex-col glass-panel shadow-lg rounded-xl animate-scale-in p-5">
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <div className="flex-1">
+          <SearchBar onSearch={handleSearch} />
+        </div>
         
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <ActionButton
-            icon={<Copy className="action-icon" />}
+            icon={<Copy className="h-4 w-4" />}
             label="Copy Transcript"
             onClick={handleCopyTranscript}
+            variant="outline"
+            className="bg-white/80 dark:bg-gray-800/80"
           />
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="outline" size="icon" className="bg-white/80 dark:bg-gray-800/80">
                 <EllipsisVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleShare}>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={handleShare} className="cursor-pointer">
                 Share Transcript
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDownload}>
+              <DropdownMenuItem onClick={handleDownload} className="cursor-pointer">
                 Download Transcript
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCopyTranscript}>
+              <DropdownMenuItem onClick={handleCopyTranscript} className="cursor-pointer">
                 Copy Transcript
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <div className="flex items-center justify-between w-full">
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="p-0">
+                <div className="flex items-center justify-between w-full p-2">
                   <span>Auto-scroll</span>
                   <Switch 
                     id="auto-scroll-dropdown" 
@@ -111,8 +127,8 @@ const TranscriptViewer = ({ segments, showTimestamps }: TranscriptViewerProps) =
         </div>
       </div>
       
-      <div className="flex items-center justify-between mb-3">
-        <div className="text-sm text-muted-foreground">
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-sm text-muted-foreground font-medium">
           {filteredSegments.length} {filteredSegments.length === 1 ? 'segment' : 'segments'}
           {searchTerm && ` matching "${searchTerm}"`}
         </div>
@@ -130,8 +146,8 @@ const TranscriptViewer = ({ segments, showTimestamps }: TranscriptViewerProps) =
         </div>
       </div>
       
-      <ScrollArea className="h-[400px] rounded-md border">
-        <div className="space-y-1 p-1">
+      <ScrollArea className="h-[450px] rounded-md border bg-white/30 dark:bg-gray-900/30">
+        <div className="space-y-1 p-2">
           {filteredSegments.length > 0 ? (
             filteredSegments.map((segment) => (
               <TranscriptLine
@@ -141,7 +157,7 @@ const TranscriptViewer = ({ segments, showTimestamps }: TranscriptViewerProps) =
               />
             ))
           ) : (
-            <div className="p-4 text-center text-muted-foreground">
+            <div className="p-8 text-center text-muted-foreground">
               {searchTerm ? 'No matching segments found' : 'No transcript segments available'}
             </div>
           )}

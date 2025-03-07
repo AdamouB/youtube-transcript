@@ -97,20 +97,20 @@
 
   /* Custom Scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-transparent;
+    @apply bg-transparent rounded-full;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/30 rounded-full;
+    @apply bg-muted-foreground/20 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/50;
+    @apply bg-muted-foreground/40;
   }
 
   /* Typography enhancements */
@@ -133,15 +133,15 @@
 
 @layer components {
   .glass-panel {
-    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-border rounded-lg shadow-sm;
+    @apply bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border border-white/20 dark:border-gray-800/30 rounded-lg;
   }
 
   .timestamp {
-    @apply text-sm text-muted-foreground font-mono tracking-tight;
+    @apply text-xs text-muted-foreground font-mono tracking-tight;
   }
 
   .transcript-line {
-    @apply py-2 px-4 rounded-md hover:bg-secondary/50 transition-all duration-200;
+    @apply py-2 px-4 rounded-md hover:bg-secondary/70 transition-all duration-200;
   }
 
   .transcript-line-active {
@@ -152,7 +152,7 @@
     @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors 
     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
     disabled:opacity-50 disabled:pointer-events-none ring-offset-background
-    hover:bg-secondary/80 active:scale-95 transition-all duration-200;
+    hover:bg-secondary/80 hover:scale-105 active:scale-95 transition-all duration-200;
   }
 
   .action-icon {
@@ -168,5 +168,13 @@
 @layer utilities {
   .transition-defaults {
     @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .hover-scale {
+    @apply transition-transform hover:scale-105 active:scale-95;
+  }
+  
+  .hover-elevate {
+    @apply transition-all hover:shadow-md hover:-translate-y-0.5;
   }
 }
