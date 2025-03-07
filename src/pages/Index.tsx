@@ -1,11 +1,96 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from 'react';
+import Header from '@/components/Header';
+import TranscriptForm from '@/components/TranscriptForm';
+import TranscriptViewer from '@/components/TranscriptViewer';
+import { TranscriptSegment } from '@/components/TranscriptLine';
+import { fetchTranscript, extractVideoId, getYouTubeThumbnail } from '@/utils/transcript';
+import { toast } from 'sonner';
 
 const Index = () => {
+  const [showTimestamps, setShowTimestamps] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [videoId, setVideoId] = useState<string | null>(null);
+  const [transcript, setTranscript] = useState<TranscriptSegment[]>([]);
+  const [language, setLanguage] = useState('en');
+
+  const handleSubmit = async (url: string) => {
+    setIsLoading(true);
+    try {
+      const id = extractVideoId(url);
+      if (!id) {
+        toast.error('Invalid YouTube URL');
+        setIsLoading(false);
+        return;
+      }
+      
+      setVideoId(id);
+      const data = await fetchTranscript(url);
+      setTranscript(data);
+      toast.success('Transcript loaded successfully!');
+    } catch (error) {
+      console.error('Error:', error);
+      setTranscript([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    if (videoId) {
+      handleSubmit(`https://youtu.be/${videoId}`);
+    } else {
+      toast.error('No video loaded to refresh');
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen flex flex-col items-center p-4 sm:p-6 md:p-8">
+      <div className="w-full max-w-4xl mx-auto space-y-6">
+        <h1 className="text-center font-light tracking-tight">
+          <span className="text-primary font-medium">Transcript</span> To Go
+        </h1>
+        
+        <Header 
+          showTimestamps={showTimestamps}
+          setShowTimestamps={setShowTimestamps}
+          isTranscriptLoaded={transcript.length > 0}
+          language={language}
+          setLanguage={setLanguage}
+          onRefresh={handleRefresh}
+        />
+        
+        <TranscriptForm 
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+        />
+        
+        {videoId && (
+          <div className="w-full aspect-video relative rounded-lg overflow-hidden animate-fade-in">
+            <img
+              src={getYouTubeThumbnail(videoId)}
+              alt="Video thumbnail"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          </div>
+        )}
+        
+        {transcript.length > 0 && (
+          <TranscriptViewer 
+            segments={transcript}
+            showTimestamps={showTimestamps}
+          />
+        )}
+        
+        {!transcript.length && !isLoading && (
+          <div className="text-center p-8 glass-panel animate-fade-in">
+            <h3 className="text-xl font-medium mb-2">No Transcript Loaded</h3>
+            <p className="text-muted-foreground">
+              Enter a YouTube URL above to fetch and display the transcript.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
