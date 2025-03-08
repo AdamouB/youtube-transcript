@@ -4,7 +4,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-  Share2, Pencil, Download, Quote, RefreshCw
+  Share2, Pencil, Download, Quote, RefreshCw, ArrowLeft
 } from 'lucide-react';
 import ActionButton from './ActionButton';
 import { toast } from 'sonner';
@@ -17,6 +17,7 @@ interface HeaderProps {
   language: string;
   setLanguage: (language: string) => void;
   onRefresh: () => void;
+  onBackClick?: () => void; // Added this prop
 }
 
 const Header = ({ 
@@ -25,7 +26,8 @@ const Header = ({
   isTranscriptLoaded,
   language,
   setLanguage,
-  onRefresh
+  onRefresh,
+  onBackClick
 }: HeaderProps) => {
   const handleShare = () => {
     if (navigator.share) {
@@ -58,6 +60,15 @@ const Header = ({
     <div className="flex flex-col space-y-3 w-full animate-fade-in">
       <div className="flex items-center justify-between w-full bg-white/50 dark:bg-gray-900/50 rounded-lg p-3 shadow-sm">
         <div className="flex items-center gap-3">
+          {onBackClick && (
+            <ActionButton 
+              icon={<ArrowLeft className="h-4 w-4" />} 
+              label="Back" 
+              onClick={onBackClick}
+              variant="outline"
+              className="bg-white/80 dark:bg-gray-800/80 mr-2"
+            />
+          )}
           <span className="text-lg font-medium text-primary">Transcript</span>
           {isTranscriptLoaded && (
             <div className="hidden sm:flex items-center gap-3 ml-2">
@@ -167,3 +178,4 @@ const Header = ({
 };
 
 export default Header;
+
