@@ -1,14 +1,14 @@
-
 import { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-  Share2, Pencil, Download, Quote, RefreshCw, ArrowLeft
+  Share2, Pencil, Download, Quote, RefreshCw, ArrowLeft, Info
 } from 'lucide-react';
 import ActionButton from './ActionButton';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
+import Changelog from './Changelog';
 
 interface HeaderProps {
   showTimestamps: boolean;
@@ -17,7 +17,7 @@ interface HeaderProps {
   language: string;
   setLanguage: (language: string) => void;
   onRefresh: () => void;
-  onBackClick?: () => void; // Added this prop
+  onBackClick?: () => void;
 }
 
 const Header = ({ 
@@ -29,6 +29,8 @@ const Header = ({
   onRefresh,
   onBackClick
 }: HeaderProps) => {
+  const [showChangelog, setShowChangelog] = useState(false);
+
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -58,6 +60,8 @@ const Header = ({
 
   return (
     <div className="flex flex-col space-y-3 w-full animate-fade-in">
+      <Changelog open={showChangelog} onOpenChange={setShowChangelog} />
+      
       <div className="flex items-center justify-between w-full bg-white/50 dark:bg-gray-900/50 rounded-lg p-3 shadow-sm">
         <div className="flex items-center gap-3">
           {onBackClick && (
@@ -89,6 +93,14 @@ const Header = ({
         </div>
         
         <div className="flex items-center space-x-1">
+          <ActionButton 
+            icon={<Info className="h-4 w-4" />} 
+            label="What's New" 
+            onClick={() => setShowChangelog(true)}
+            variant="outline"
+            className="bg-white/80 dark:bg-gray-800/80 mr-1"
+          />
+          
           {isTranscriptLoaded && (
             <>
               <ActionButton 
@@ -178,4 +190,3 @@ const Header = ({
 };
 
 export default Header;
-
