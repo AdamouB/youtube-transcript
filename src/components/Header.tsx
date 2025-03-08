@@ -4,12 +4,14 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-  Share2, Pencil, Download, Quote, RefreshCw, ArrowLeft, Info
+  Share2, Pencil, Download, Quote, RefreshCw, ArrowLeft, Info,
+  Languages, Save, Clock, Lightbulb, Globe
 } from 'lucide-react';
 import ActionButton from './ActionButton';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 import Changelog from './Changelog';
+import { Badge } from '@/components/ui/badge';
 
 interface HeaderProps {
   showTimestamps: boolean;
@@ -19,6 +21,9 @@ interface HeaderProps {
   setLanguage: (language: string) => void;
   onRefresh: () => void;
   onBackClick?: () => void;
+  isEditMode?: boolean;
+  setIsEditMode?: (value: boolean) => void;
+  isCached?: boolean;
 }
 
 const Header = ({ 
@@ -28,7 +33,10 @@ const Header = ({
   language,
   setLanguage,
   onRefresh,
-  onBackClick
+  onBackClick,
+  isEditMode = false,
+  setIsEditMode,
+  isCached = false
 }: HeaderProps) => {
   const [showChangelog, setShowChangelog] = useState(false);
 
@@ -48,7 +56,12 @@ const Header = ({
   };
 
   const handleEdit = () => {
-    toast.info('Edit mode will be available in a future update');
+    if (setIsEditMode) {
+      setIsEditMode(!isEditMode);
+      toast.success(isEditMode ? 'Exited edit mode' : 'Entered edit mode');
+    } else {
+      toast.info('Edit mode will be available in a future update');
+    }
   };
 
   const handleDownload = () => {
@@ -75,11 +88,18 @@ const Header = ({
             />
           )}
           <span className="text-lg font-medium text-primary">Transcript</span>
+          {isCached && (
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 gap-1">
+              <Clock className="h-3 w-3" />
+              <span>Cached</span>
+            </Badge>
+          )}
           {isTranscriptLoaded && (
             <div className="hidden sm:flex items-center gap-3 ml-2">
               <Separator orientation="vertical" className="h-6" />
               <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger className="w-[180px] h-9 bg-white/80 dark:bg-gray-800/80">
+                <SelectTrigger className="w-[180px] h-9 bg-white/80 dark:bg-gray-800/80 gap-2">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
                 <SelectContent>
@@ -87,6 +107,12 @@ const Header = ({
                   <SelectItem value="es">Spanish</SelectItem>
                   <SelectItem value="fr">French</SelectItem>
                   <SelectItem value="de">German</SelectItem>
+                  <SelectItem value="it">Italian</SelectItem>
+                  <SelectItem value="pt">Portuguese</SelectItem>
+                  <SelectItem value="ru">Russian</SelectItem>
+                  <SelectItem value="zh">Chinese</SelectItem>
+                  <SelectItem value="ja">Japanese</SelectItem>
+                  <SelectItem value="ko">Korean</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -134,10 +160,10 @@ const Header = ({
               
               <ActionButton 
                 icon={<Pencil className="h-4 w-4" />} 
-                label="Edit" 
+                label={isEditMode ? "Exit Edit Mode" : "Edit"}
                 onClick={handleEdit}
-                variant="outline"
-                className="bg-white/80 dark:bg-gray-800/80"
+                variant={isEditMode ? "default" : "outline"}
+                className={isEditMode ? "bg-primary text-white" : "bg-white/80 dark:bg-gray-800/80"}
               />
               
               <ActionButton 
@@ -163,7 +189,8 @@ const Header = ({
       {isTranscriptLoaded && (
         <div className="sm:hidden flex items-center gap-3 w-full bg-white/50 dark:bg-gray-900/50 rounded-lg p-3 shadow-sm">
           <Select value={language} onValueChange={setLanguage}>
-            <SelectTrigger className="w-full h-9 bg-white/80 dark:bg-gray-800/80">
+            <SelectTrigger className="w-full h-9 bg-white/80 dark:bg-gray-800/80 gap-2">
+              <Globe className="h-4 w-4 text-muted-foreground" />
               <SelectValue placeholder="Select language" />
             </SelectTrigger>
             <SelectContent>
@@ -171,6 +198,12 @@ const Header = ({
               <SelectItem value="es">Spanish</SelectItem>
               <SelectItem value="fr">French</SelectItem>
               <SelectItem value="de">German</SelectItem>
+              <SelectItem value="it">Italian</SelectItem>
+              <SelectItem value="pt">Portuguese</SelectItem>
+              <SelectItem value="ru">Russian</SelectItem>
+              <SelectItem value="zh">Chinese</SelectItem>
+              <SelectItem value="ja">Japanese</SelectItem>
+              <SelectItem value="ko">Korean</SelectItem>
             </SelectContent>
           </Select>
           <div className="flex items-center space-x-2">

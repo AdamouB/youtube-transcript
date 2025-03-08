@@ -1,11 +1,12 @@
 
 import { useState, useEffect } from 'react';
 import { TranscriptSegment } from '@/components/TranscriptLine';
-import { fetchTranscript, extractVideoId, getYouTubeThumbnail } from '@/utils/transcript';
+import { fetchTranscript, extractVideoId, getYouTubeThumbnail, validateYouTubeUrl } from '@/utils/transcript';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 
 import NavHeader from '@/components/NavHeader';
 import HeroSection from '@/components/HeroSection';
@@ -18,6 +19,11 @@ import FAQSection from '@/components/FAQSection';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 
+interface CachedTranscript {
+  segments: TranscriptSegment[];
+  timestamp: number;
+}
+
 const Index = () => {
   const [showTimestamps, setShowTimestamps] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,10 +32,21 @@ const Index = () => {
   const [language, setLanguage] = useState('en');
   const [activeTab, setActiveTab] = useState('transcript');
   const [showLandingContent, setShowLandingContent] = useState(true);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [cachedTranscripts, setCachedTranscripts] = useLocalStorage<Record<string, CachedTranscript>>('cached-transcripts', {});
+  const [isCached, setIsCached] = useState(false);
 
   const handleSubmit = async (url: string) => {
     setIsLoading(true);
     try {
+      // Validate URL first
+      const validationResult = validateYouTubeUrl(url);
+      if (!validationResult.isValid) {
+        toast.error(validationResult.error || 'Invalid YouTube URL');
+        setIsLoading(false);
+        return;
+      }
+      
       const id = extractVideoId(url);
       if (!id) {
         toast.error('Invalid YouTube URL');
@@ -38,9 +55,34 @@ const Index = () => {
       }
       
       setVideoId(id);
-      const data = await fetchTranscript(url);
-      setTranscript(data);
-      toast.success('Transcript loaded successfully!');
+      
+      // Check if we have a cached version (not older than 24 hours)
+      const now = Date.now();
+      const cachedEntry = cachedTranscripts[id];
+      const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+      
+      if (cachedEntry && (now - cachedEntry.timestamp) < CACHE_DURATION) {
+        setTranscript(cachedEntry.segments);
+        setIsCached(true);
+        toast.success('Loaded cached transcript!');
+      } else {
+        const data = await fetchTranscript(url);
+        
+        // Cache the new transcript
+        const updatedCache = {
+          ...cachedTranscripts,
+          [id]: {
+            segments: data,
+            timestamp: now
+          }
+        };
+        setCachedTranscripts(updatedCache);
+        
+        setTranscript(data);
+        setIsCached(false);
+        toast.success('Transcript loaded successfully!');
+      }
+      
       setShowLandingContent(false); // Hide landing content when transcript is loaded
     } catch (error) {
       console.error('Error:', error);
@@ -53,6 +95,8 @@ const Index = () => {
 
   const handleRefresh = () => {
     if (videoId) {
+      // Force a fresh fetch by clearing the cached status
+      setIsCached(false);
       handleSubmit(`https://youtu.be/${videoId}`);
     } else {
       toast.error('No video loaded to refresh');
@@ -63,6 +107,7 @@ const Index = () => {
     setTranscript([]);
     setVideoId(null);
     setShowLandingContent(true);
+    setIsEditMode(false);
   };
 
   return (
@@ -101,7 +146,10 @@ const Index = () => {
                 language={language}
                 setLanguage={setLanguage}
                 onRefresh={handleRefresh}
-                onBackClick={resetToLanding}  // Changed from onBack to onBackClick to match Header component
+                onBackClick={resetToLanding}
+                isEditMode={isEditMode}
+                setIsEditMode={setIsEditMode}
+                isCached={isCached}
               />
               
               {videoId && (
@@ -146,6 +194,7 @@ const Index = () => {
                     <TranscriptViewer 
                       segments={transcript}
                       showTimestamps={showTimestamps}
+                      isEditMode={isEditMode}
                     />
                   </TabsContent>
                   

@@ -1,9 +1,9 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { TranscriptSegment } from './TranscriptLine';
 import TranscriptLine from './TranscriptLine';
 import SearchBar from './SearchBar';
-import { Copy, EllipsisVertical, ArrowDown, ArrowUp } from 'lucide-react';
+import { Copy, EllipsisVertical, ArrowDown, ArrowUp, PlayCircle, PauseCircle, SkipForward, SkipBack } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -17,36 +17,89 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ActionButton from './ActionButton';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 
 interface TranscriptViewerProps {
   segments: TranscriptSegment[];
   showTimestamps: boolean;
+  isEditMode?: boolean;
 }
 
-const TranscriptViewer = ({ segments, showTimestamps }: TranscriptViewerProps) => {
+const TranscriptViewer = ({ segments, showTimestamps, isEditMode = false }: TranscriptViewerProps) => {
   const [filteredSegments, setFilteredSegments] = useState<TranscriptSegment[]>(segments);
   const [searchTerm, setSearchTerm] = useState('');
   const [autoScroll, setAutoScroll] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentSegmentIndex, setCurrentSegmentIndex] = useState<number | null>(null);
+  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
+  const [editedSegments, setEditedSegments] = useLocalStorage<Record<string, string>>('edited-segments', {});
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const playbackTimerRef = useRef<number | null>(null);
 
   // Removed visibleRange state and loadingMore state since we're showing all segments now
 
   useEffect(() => {
     if (searchTerm) {
-      const filtered = segments.filter(segment => 
+      const filtered = segments.map(segment => {
+        // If segment has been edited, we'll use the edited version for search
+        const text = editedSegments[segment.id] || segment.text;
+        return {
+          ...segment,
+          text: editedSegments[segment.id] || segment.text
+        };
+      }).filter(segment => 
         segment.text.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredSegments(filtered);
     } else {
-      setFilteredSegments(segments);
+      // Apply any edits to the segments
+      setFilteredSegments(segments.map(segment => ({
+        ...segment,
+        text: editedSegments[segment.id] || segment.text
+      })));
     }
-  }, [searchTerm, segments]);
+  }, [searchTerm, segments, editedSegments]);
+
+  // Apply auto-scrolling playback
+  useEffect(() => {
+    if (isPlaying && currentSegmentIndex !== null) {
+      // Clear any existing timer
+      if (playbackTimerRef.current) {
+        window.clearTimeout(playbackTimerRef.current);
+      }
+
+      // Set up a timer to move to the next segment
+      const currentSegment = filteredSegments[currentSegmentIndex];
+      if (currentSegment) {
+        playbackTimerRef.current = window.setTimeout(() => {
+          if (currentSegmentIndex < filteredSegments.length - 1) {
+            setCurrentSegmentIndex(prev => {
+              const nextIndex = prev !== null ? prev + 1 : 0;
+              scrollToSegment(nextIndex);
+              return nextIndex;
+            });
+          } else {
+            // Reached the end of the transcript
+            setIsPlaying(false);
+            setCurrentSegmentIndex(null);
+          }
+        }, currentSegment.duration * 1000);
+      }
+    }
+
+    return () => {
+      if (playbackTimerRef.current) {
+        window.clearTimeout(playbackTimerRef.current);
+      }
+    };
+  }, [isPlaying, currentSegmentIndex, filteredSegments]);
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
   };
 
   const handleCopyTranscript = () => {
-    const fullText = segments.map(segment => segment.text).join(' ');
+    const fullText = filteredSegments.map(segment => editedSegments[segment.id] || segment.text).join(' ');
     navigator.clipboard.writeText(fullText);
     toast.success('Full transcript copied to clipboard!');
   };
@@ -67,7 +120,7 @@ const TranscriptViewer = ({ segments, showTimestamps }: TranscriptViewerProps) =
   };
 
   const handleDownload = () => {
-    const fullText = segments.map(segment => segment.text).join('\n\n');
+    const fullText = filteredSegments.map(segment => editedSegments[segment.id] || segment.text).join('\n\n');
     const blob = new Blob([fullText], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -85,6 +138,56 @@ const TranscriptViewer = ({ segments, showTimestamps }: TranscriptViewerProps) =
     if (scrollContainer) {
       scrollContainer.scrollTop = 0;
     }
+  };
+
+  const handlePlayPause = () => {
+    if (!isPlaying) {
+      // Start playing from the beginning if no current segment
+      setCurrentSegmentIndex(prev => prev !== null ? prev : 0);
+      setIsPlaying(true);
+      if (currentSegmentIndex !== null) {
+        scrollToSegment(currentSegmentIndex);
+      }
+    } else {
+      // Pause playback
+      setIsPlaying(false);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentSegmentIndex === null || currentSegmentIndex >= filteredSegments.length - 1) {
+      setCurrentSegmentIndex(0);
+    } else {
+      setCurrentSegmentIndex(currentSegmentIndex + 1);
+    }
+    scrollToSegment(currentSegmentIndex !== null && currentSegmentIndex < filteredSegments.length - 1 ? 
+      currentSegmentIndex + 1 : 0);
+  };
+
+  const handlePrevious = () => {
+    if (currentSegmentIndex === null || currentSegmentIndex <= 0) {
+      setCurrentSegmentIndex(filteredSegments.length - 1);
+    } else {
+      setCurrentSegmentIndex(currentSegmentIndex - 1);
+    }
+    scrollToSegment(currentSegmentIndex !== null && currentSegmentIndex > 0 ? 
+      currentSegmentIndex - 1 : filteredSegments.length - 1);
+  };
+
+  const scrollToSegment = (index: number) => {
+    setIsAutoScrolling(true);
+    setTimeout(() => {
+      const element = document.getElementById(`segment-${filteredSegments[index]?.id}`);
+      if (element && scrollAreaRef.current) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setIsAutoScrolling(false);
+    }, 100);
+  };
+
+  const handleUpdateSegment = (id: string, newText: string) => {
+    const updatedSegments = { ...editedSegments, [id]: newText };
+    setEditedSegments(updatedSegments);
   };
 
   return (
@@ -154,8 +257,41 @@ const TranscriptViewer = ({ segments, showTimestamps }: TranscriptViewerProps) =
           </Label>
         </div>
       </div>
+
+      {/* Playback controls */}
+      <div className="flex items-center justify-center gap-3 mb-4 p-2 rounded-lg bg-white/30 dark:bg-gray-800/30">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handlePrevious}
+          className="h-9 w-9 rounded-full"
+        >
+          <SkipBack className="h-5 w-5" />
+        </Button>
+        
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handlePlayPause}
+          className="h-11 w-11 rounded-full bg-primary/10 hover:bg-primary/20"
+        >
+          {isPlaying ? 
+            <PauseCircle className="h-7 w-7 text-primary" /> : 
+            <PlayCircle className="h-7 w-7 text-primary" />
+          }
+        </Button>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleNext}
+          className="h-9 w-9 rounded-full"
+        >
+          <SkipForward className="h-5 w-5" />
+        </Button>
+      </div>
       
-      <ScrollArea className="h-[450px] rounded-md border bg-white/30 dark:bg-gray-900/30 scroll-container">
+      <ScrollArea ref={scrollAreaRef} className="h-[450px] rounded-md border bg-white/30 dark:bg-gray-900/30 scroll-container">
         <div className="space-y-1 p-2 relative">
           {filteredSegments.length > 0 ? (
             <>
@@ -169,12 +305,16 @@ const TranscriptViewer = ({ segments, showTimestamps }: TranscriptViewerProps) =
               </Button>
               
               {/* Display all segments without pagination */}
-              {filteredSegments.map((segment) => (
-                <TranscriptLine
-                  key={segment.id}
-                  segment={segment}
-                  showTimestamps={showTimestamps}
-                />
+              {filteredSegments.map((segment, index) => (
+                <div id={`segment-${segment.id}`} key={segment.id}>
+                  <TranscriptLine
+                    segment={segment}
+                    showTimestamps={showTimestamps}
+                    isActive={currentSegmentIndex === index}
+                    isEditMode={isEditMode}
+                    onUpdateSegment={handleUpdateSegment}
+                  />
+                </div>
               ))}
             </>
           ) : (

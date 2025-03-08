@@ -114,6 +114,36 @@ export const extractVideoId = (url: string): string | null => {
   return null;
 };
 
+// Function to validate YouTube URL more robustly
+export interface ValidationResult {
+  isValid: boolean;
+  error?: string;
+}
+
+export const validateYouTubeUrl = (url: string): ValidationResult => {
+  if (!url || url.trim() === '') {
+    return { isValid: false, error: 'Please enter a YouTube URL' };
+  }
+  
+  // Check for basic URL format
+  if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+    return { isValid: false, error: 'URL must be from youtube.com or youtu.be' };
+  }
+  
+  // Extract the video ID
+  const videoId = extractVideoId(url);
+  if (!videoId) {
+    return { isValid: false, error: 'Could not extract a valid YouTube video ID from the URL' };
+  }
+  
+  // Check video ID format (YouTube video IDs are 11 characters)
+  if (videoId.length !== 11) {
+    return { isValid: false, error: 'Invalid YouTube video ID format' };
+  }
+  
+  return { isValid: true };
+};
+
 // Function to generate thumbnail URL from video ID
 export const getYouTubeThumbnail = (videoId: string): string => {
   // Using maxresdefault for high quality, with fallback option
@@ -126,6 +156,12 @@ export const processBulkTranscripts = async (urls: string[]): Promise<Record<str
   
   for (const url of urls) {
     try {
+      const validation = validateYouTubeUrl(url);
+      if (!validation.isValid) {
+        console.error(`Invalid URL: ${url} - ${validation.error}`);
+        continue;
+      }
+      
       const videoId = extractVideoId(url);
       if (videoId) {
         const transcript = await fetchTranscript(url);
